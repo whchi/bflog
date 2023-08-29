@@ -21,6 +21,11 @@ function doPost(e) {
     doReply(replyText, replyToken);
     return;
   }
+  if (message === '!吃多少') {
+    replyText = getLastRow();
+    doReply(replyText, replyToken);
+    return;
+  }
 
   const state = getState();
   switch (state) {
@@ -139,4 +144,24 @@ function doReply(message, replyToken) {
   };
 
   UrlFetchApp.fetch('https://api.line.me/v2/bot/message/reply', options);
+}
+
+function getLastRow() {
+  const rows = sheet.getRange('A2:C').getValues();
+  const lastRow = rows[rows.length - 1];
+  const lastDate = new Date(lastRow[0]);
+  const now = new Date();
+  const diff = now.getTime() - lastDate.getTime();
+  const diffHours = Math.floor(diff / (1000 * 60 * 60));
+  const diffMinutes = Math.floor((diff / (1000 * 60)) % 60);
+  const diffSeconds = Math.floor((diff / 1000) % 60);
+
+  const lastType = lastRow[1];
+  const lastUnit =
+    lastType === '配方奶' ? lastRow[2] + ' cc' : lastRow[2] + ' 分鐘';
+  return `上次喝奶時間：${lastDate.toLocaleString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+  })}\n距離上次喝奶：${diffHours}小時${diffMinutes}分鐘${diffSeconds}秒
+  \n上次喝奶種類：${lastType}
+  \n上次喝奶單位：${lastUnit}`;
 }
